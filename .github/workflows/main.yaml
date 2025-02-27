@@ -20,6 +20,7 @@ jobs:
         UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
         UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
       with:
+        version: 6000.0.38f1
         targetPlatform: StandaloneWindows64  # ビルドターゲットを指定（Windows用）
         projectPath: ${{ github.workspace }}  # プロジェクトパス
         buildName: "MyGameBuild"  # ビルド名を指定
