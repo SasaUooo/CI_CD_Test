@@ -1,40 +1,31 @@
-name: Build and deploy WebGPU
+name: Unity Build Windows
 
 on:
-  workflow_dispatch:
   push:
-    branches: [ "main" ]
+    branches:
+      - main  # mainブランチへのpush時にビルドを実行
 
 jobs:
-  ubuntu-build:
-    runs-on: ubuntu-latest
-
-    permissions:
-      checks: write
+  build:
+    runs-on: ubuntu-latest  # または windows-latest でも実行可能
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v2
 
-      - name: Cache library
-        uses: actions/cache@v4
-        with:
-          path: Library
-          key: Library-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
-          restore-keys: |
-            Library-
-                
-      - name: Build project
-        uses: game-ci/unity-builder@v4
-        env:
-            UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-            UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-            UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-        with:
-            targetPlatform: WebGL
+    - name: Setup Unity
+      uses: game-ci/unity-builder@v2
+      with:
+        version: 2021.3.12f1  # 使用するUnityのバージョンを指定
+        targetPlatform: StandaloneWindows64  # ビルドターゲットを指定（Windows用）
+        projectPath: ${{ github.workspace }}  # プロジェクトパス
+        buildName: "MyGameBuild"  # ビルド名を指定
+        buildTarget: StandaloneWindows64  # Windows用のビルドターゲット
+        buildPath: ${{ github.workspace }}/Build/Windows  # 出力先のパス
+        unityLicense: ${{ secrets.UNITY_LICENSE }}  # Unityのライセンス（後述）
 
-
-      - uses: actions/upload-artifact@v4
-        with:
-            name: Build
-            path: build
+    - name: Upload Build Artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: WindowsBuild
+        path: ${{ github.workspace }}/Build/Windows
