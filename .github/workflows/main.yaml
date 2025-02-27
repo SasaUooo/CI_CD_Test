@@ -1,42 +1,43 @@
-name: Unity Build Windows
+name: Build and deploy WebGPU
 
 on:
+  workflow_dispatch:
   push:
-    branches:
-      - main  # mainブランチへのpush時にビルドを実行
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
-  build:
-    runs-on: ubuntu-latest  # または windows-latest でも実行可能
+  ubuntu-build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      checks: write
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Cache library
-      uses: actions/cache@v4
-      with:
-        path: Library
-        key: Library-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
-        restore-keys: |
-          Library-
+      - name: Cache library
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          restore-keys: |
+            Library-
 
-    - name: Setup Unity
-      uses: game-ci/unity-builder@v4
-      env:
-        UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-        UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-        UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-      with:
-        version: 6000.0.38f1
-        targetPlatform: StandaloneWindows64  # ビルドターゲットを指定（Windows用）
-        projectPath: ${{ github.workspace }}  # プロジェクトパス
-        buildName: "MyGameBuild"  # ビルド名を指定
-        buildTarget: StandaloneWindows64  # Windows用のビルドターゲット
-        buildPath: ${{ github.workspace }}/Build/Windows  # 出力先のパス
+      - name: Build project
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          allowDirtyBuild: true
+          targetPlatform: StandaloneWindows64
 
-    - name: Upload Build Artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: WindowsBuild
-        path: ${{ github.workspace }}/Build/Windows
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          path: build
+
